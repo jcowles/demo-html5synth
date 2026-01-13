@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <!-- 
-    Warning: this code is just a prototype and really messy, it also only works with Firefox 4.0
+    Prototype Web Audio synth using modern browsers (Chrome/Firefox/Edge/Safari)
   -->
   <head>
     <title>Audio Data API Synth</title>
@@ -52,334 +52,271 @@
     });
     </script>
     <style>
-        body { font-family: helvetica, verdana, sans; font-size: 0.9em;}
+        body { font-family: helvetica, verdana, sans; font-size: 0.9em; margin: 0; min-height: 100vh;}
         .ojText { border:0; color:#f6931f; font-weight:bold; }
+        .cta-btn {
+          background-color: #f6931f;
+          border: none;
+          color: #fff;
+          padding: 10px 16px;
+          border-radius: 4px;
+          font-size: 0.95em;
+          cursor: pointer;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .cta-btn:hover { background-color: #e68410; }
+        .cta-btn:active { transform: translateY(1px); }
+        .start-screen {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-height: 100vh;
+          background: #fff;
+        }
+        .synth-ui { display: none; padding: 0 16px 24px 16px; }
+        body.show-ui .synth-ui { display: block; }
+        body.show-ui .start-screen { display: none; }
     </style>
   </head>
-  <body id="body" onKeyDown="return keyDown(event)" onKeyUp="return keyUp(event)">
-    <div style="margin-top: 20px;float: right; font-size: 0.7em; color: #999;">Created by <a href="http://visualcore.com">Jeremy Cowles</a></div>
-    <h1 style="font-size: 1.8em">HTML5 Synthesizer</h1>
-    <div style="display: none;">
-        <input id="doLfo" type="checkbox" value="0">
-        <input id="lfo" type="text" size="1" value="0" class="ojText"><label for="doLfo">super-cheesy lfo</label>
-        <br/><br/>
+  <body id="body">
+    <div class="start-screen" id="startScreen">
+      <button id="enableAudio" class="cta-btn">Start the synth</button>
     </div>
 
-    <div style="border: solid 1px #f6931f; padding: 10px; background-color: #fdf5ce;">
-    NOTICE: This page requires <strong>Firefox 4.0</strong> because it uses the Firefox Audio Data API.<br/>
+    <div class="synth-ui" id="synthUi">
+      <div style="margin-top: 20px;float: right; font-size: 0.7em; color: #999;">Created by <a href="http://visualcore.com">Jeremy Cowles</a></div>
+      <h1 style="font-size: 1.8em">HTML5 Synthesizer</h1>
+      <div style="display: none;">
+          <input id="doLfo" type="checkbox" value="0">
+          <input id="lfo" type="text" size="1" value="0" class="ojText"><label for="doLfo">super-cheesy lfo</label>
+          <br/><br/>
+      </div>
+
+      The following is a simple synthesizer built with the Web Audio API. It generates wave
+      data using oscillators and a volume envelope (see source for details). jQuery is used strictly for
+      UI elements and does not play a part in the generation of audio.
+      <br/>
+      <h3>Keyboard:</h3>
+      Black keys: 2 4 5 7 9 -<br/>
+      White keys: q w e r t y u i o p<br style="clear: both"/>
+      
+      <div style="margin-right: 100px; float: left">
+          <h3>Oscillators:</h3>
+          <input id="osc1" type="checkbox" checked><label for="osc1">Osc-1</label>
+          <input type="text" size="1" id="freq1" value="0" class="ojText"><label for="freq1">Semitones (sine)</label>
+          <div style="float: left; width: 200px;" id="slider1"></div>
+
+          <br/><br/>
+          <input id="osc2" type="checkbox"><label for="osc2">Osc-2</label>
+          <input type="text" size="1" id="freq2" value="0" class="ojText"><label for="freq2">Semitones (square)</label>
+          <div style="float: left; width: 200px;" id="slider2"></div>
+
+          <br/><br/>
+          <input id="osc3" type="checkbox"><label for="osc3">Osc-3</label>
+          <input type="text" size="1" id="freq3" value="0" class="ojText"><label for="freq3">Semitones (square)</label>
+          <div style="float: left; width: 200px;" id="slider3"></div>
+          <br/><br/>
+          <br/><br/>
+      </div>
+      <div style="float: none">
+          <h3>Volume Envelope:</h3>
+          <input type="text" size="3" id="attack" value="0" class="ojText">
+          <label for="attack">Attack</label>
+          <div style="float: left; width: 200px; margin-right: 20px;" id="sliderAttack"></div>
+          <br/> <br/>
+          <input type="text" size="3" id="decay" value="0" class="ojText">
+          <label for="decay">Decay</label>
+          <div style="float: left; width: 200px; margin-right: 20px;" id="sliderDecay"></div>
+          <br/>
+          <br/>
+          <input type="text" size="3" id="sustain" value="0" class="ojText">
+          <label for="sustain">Sustain</label>
+          <div style="float: left; width: 200px; margin-right: 20px;" id="sliderSustain"></div>
+          <br/>
+          <br/>
+          <input type="text" size="3" id="release" value="0" class="ojText">
+          <label for="release">Release</label>
+          <div style="float: left; width: 200px; margin-right: 20px;" id="sliderRelease"></div>
+      </div>
+
+      <br/>
+      <br/>
+      <strong>What?! It doesn't work?</strong>
+      <ul>
+          <li>Click "Start the synth" or press a key to unlock sound (modern browsers block autoplay).</li>
+          <li>Does the page have focus? Try clicking the page and then using the hot keys.</li>
+          <li>Use a current browser with Web Audio support (Chrome, Firefox, Edge, Safari).</li>
+          <li>Still quiet? Reload the page to reset the audio context.</li>
+      </ul>
+      <br/>
+      <br/>
+      <br/>
     </div>
-
-    <br/>
-    The following is a very simple synthesizer built using the Firefox Audio Data API. It generates wave
-    data by using oscillators and a volume envelope (see source for details). jQuery is used strictly for
-    UI elements and does not play a part in the generation of audio.
-    <br/>
-    <h3>Keyboard:</h3>
-    Black keys: 2 4 5 7 9 -<br/>
-    White keys: q w e r t y u i o p<br style="clear: both"/>
-    
-    <div style="margin-right: 100px; float: left">
-        <h3>Oscillators:</h3>
-        <input id="osc1" type="checkbox" checked><label for="osc1">Osc-1</label>
-        <input type="text" size="1" id="freq1" value="0" class="ojText"><label for="freq1">Semitones (sine)</label>
-        <div style="float: left; width: 200px;" id="slider1"></div>
-
-        <br/><br/>
-        <input id="osc2" type="checkbox"><label for="osc2">Osc-2</label>
-        <input type="text" size="1" id="freq2" value="0" class="ojText"><label for="freq2">Semitones (square)</label>
-        <div style="float: left; width: 200px;" id="slider2"></div>
-
-        <br/><br/>
-        <input id="osc3" type="checkbox"><label for="osc3">Osc-3</label>
-        <input type="text" size="1" id="freq3" value="0" class="ojText"><label for="freq3">Semitones (square)</label>
-        <div style="float: left; width: 200px;" id="slider3"></div>
-        <br/><br/>
-        <br/><br/>
-    </div>
-    <div style="float: none">
-        <h3>Volume Envelope:</h3>
-        <input type="text" size="3" id="attack" value="0" class="ojText">
-        <label for="attack">Attack</label>
-        <div style="float: left; width: 200px; margin-right: 20px;" id="sliderAttack"></div>
-        <br/> <br/>
-        <input type="text" size="3" id="decay" value="0" class="ojText">
-        <label for="decay">Decay</label>
-        <div style="float: left; width: 200px; margin-right: 20px;" id="sliderDecay"></div>
-        <br/>
-        <br/>
-        <input type="text" size="3" id="sustain" value="0" class="ojText">
-        <label for="sustain">Sustain</label>
-        <div style="float: left; width: 200px; margin-right: 20px;" id="sliderSustain"></div>
-        <br/>
-        <br/>
-        <input type="text" size="3" id="release" value="0" class="ojText">
-        <label for="release">Release</label>
-        <div style="float: left; width: 200px; margin-right: 20px;" id="sliderRelease"></div>
-    </div>
-
-    <br/>
-    <br/>
-    <strong>What?! It doesn't work?</strong>
-    <ul>
-        <li>Are you using Firefox 4.0?</li>
-        <li>Does the page have focus? (That is, try cliking on the page and then pressing the hot keys)</li>
-        <li>Try reloading the page! The audio data api is still experimental and this may fix the problem.</li>
-        <li>And sadly, there is a possibility the audio buffer is too small for your hardware. If you can't get it to work, please email me: jeremy dot cowles at gmail.
-    </ul>
-    <br/>
-    <br/>
-    <br/>
     
     <script type="text/javascript">
-      var activeKeys = {};
-      var activeEnv = {};
-
-      function keyDown(e) {
-        // XXX firefox/opera only (ie wants keyCode, window.event)
-        keynum = e.which;
-        keychar = String.fromCharCode(keynum);
-        if (activeEnv[keychar] && activeEnv[keychar].releasing) 
-            delete activeEnv[keychar];
-        activeKeys[keychar] = true;
-        return true;
-      }
-
-      function keyUp(e) {
-        // XXX firefox/opera only (ie wants keyCode, window.event)
-        keynum = e.which;
-        keychar = String.fromCharCode(keynum);
-        delete activeKeys[keychar];
-        return true;
-      }
-
-      function AudioDataDestination(sampleRate, readFn) {
-        // Initialize the audio output.
-        var audio = new Audio();
-        audio.mozSetup(1, sampleRate);
-
-        var currentWritePosition = 0;
-        var prebufferSize = sampleRate / 2; // buffer 500ms
-        var tail = null, tailPosition;
-
-        // The function called with regular interval to populate 
-        // the audio output buffer.
-        setInterval(function() {
-          var written;
-          // Check if some data was not written in previous attempts.
-          if(tail) {
-            written = audio.mozWriteAudio(tail.subarray(tailPosition));
-            currentWritePosition += written;
-            tailPosition += written;
-            if(tailPosition < tail.length) {
-              // Not all the data was written, saving the tail...
-              return; // ... and exit the function.
-            }
-            tail = null;
-          }
-
-          // XXX if curentPosition == 0, the buffer size is too small
-
-          // Check if we need add some data to the audio output.
-          var currentPosition = audio.mozCurrentSampleOffset();
-          var available = currentPosition + prebufferSize - currentWritePosition;
-          if(available > 0) {
-            // Request some sound data from the callback function.
-            var soundData = new Float32Array(available);
-            readFn(soundData);
-
-            // Writting the data.
-            written = audio.mozWriteAudio(soundData);
-              currentPosition = audio.mozCurrentSampleOffset();
-            if(written < soundData.length) {
-              // Not all the data was written, saving the tail.
-              tail = soundData;
-              tailPosition = written;
-            }
-            currentWritePosition += written;
-          }
-        }, 100);
-      }
-
-      // various parameters
-      // XXX clean up unused variables
-      var currentSoundSample = 0;
-      var sampleRate = 44100;
-      var lfo = 0;
-      var t = 0;
-      var dt = 0;
-
-      var notes = { 
-                "Q": 440.00,   // A        4th octave
-                  "2": 466.16, //   A#
-                "W": 493.88,   // B
-                "E": 523.25,   // C
-                  "4": 554.37, //   C#
-                "R": 587.33,   // D
-                  "5": 622.25, //   D#
-                "T": 659.26,   // E
-                "Y": 698.46,   // F
-                  "7": 739.99, //   F#
-                "U": 783.99,   // G
-                "I": 880.00,   // A        5th octave
-                  "9": 932.33, //   A#
-                "O": 987.77,   // B
-                "P":1046.50,   // C
-                  "-":1108.73, //   C#
-                "[":1174.66,   // D
-                  "=":1244.51, //   D#
-                "]":1381.51,   // E
-                "\\":1396.91,   // F
-                //  "7": 739.99, //   F#
-                //"U": 783.99,   // G
-
-            }
-
-      function sawTooth(t) {
-          return t - Math.floor(t);
-      }
-
-      function semiToFreq(semitones, rootFreq) {
-        if (semitones == 0) return rootFreq;
-        return rootFreq * (Math.pow(Math.pow(2.0,1.0 / 12.0), semitones));
-      }
-
-      function sineOsc(sample, f, sampleRate, offset) {
-        return Math.sin(2*Math.PI*(f+offset)/sampleRate*sample);
-      }
-
-      function squareOsc(sample, f, sampleRate, offset) {
-        return Math.round(sineOsc(sample,f,sampleRate,offset));
-      }
-
-      AdsrEnvelope = function (attack, decay, sustain, release, t0) {
-             this.t0 = t0;
-             this.A = attack;
-             this.D = decay;
-             this.S = sustain;
-             this.R = release;
-             this.t0 = t0;
-             this.s0 = -1;
-             this.releasing = false;
-             this.level = 0;
-
-             this.down = function(t) {
-                var dt = t - this.t0;
-                var ret = 0;
-                if (dt > this.A + this.D) ret = this.S;
-                else if (dt > this.A) {
-                    var Dpct = (dt - this.A) / this.D;
-                    ret = (1-Dpct) + (Dpct)*this.S;
-                }
-                else ret =  dt / this.A;
-                this.level = ret;
-                return ret;
-             }
-
-             this.up = function(t) {
-                 if (!this.releasing) { 
-                    this.s0 = t;
-                    this.releasing = true;
-                }
-                var dt = t - this.s0;
-                if (dt > (this.R)) return 0;
-                var retVal = this.level * (1 - dt / this.R);
-                if (isNaN(retVal)) {
-                   this.R = 0;
-                   retVal = 0;
-                }
-                return retVal;
-             }      
-        
+      const noteFrequencies = {
+        "Q": 440.0,
+        "2": 466.16,
+        "W": 493.88,
+        "E": 523.25,
+        "4": 554.37,
+        "R": 587.33,
+        "5": 622.25,
+        "T": 659.26,
+        "Y": 698.46,
+        "7": 739.99,
+        "U": 783.99,
+        "I": 880.0,
+        "9": 932.33,
+        "O": 987.77,
+        "P": 1046.5,
+        "-": 1108.73,
+        "[": 1174.66,
+        "=": 1244.51,
+        "]": 1381.51,
+        "\\": 1396.91
       };
 
-      function requestSoundData(soundData) {
-        dt = 1 / sampleRate;
-        var lfoUi = document.getElementById("lfo");
-        var doLfo = document.getElementById("doLfo").checked;
-        var osc1On = document.getElementById("osc1").checked;
-        var osc2On = document.getElementById("osc2").checked;
-        var osc3On = document.getElementById("osc3").checked;
-        var f1 = (parseFloat(document.getElementById("freq1").value));
-        var f2 = (parseFloat(document.getElementById("freq2").value));
-        var f3 = (parseFloat(document.getElementById("freq3").value));
-        var osc1 = function(sample, f) { return !osc1On ? 0 : sineOsc(sample, f, sampleRate, semiToFreq(f1,f)); } 
-        var osc2 = function(sample, f) { return !osc2On ? 0 : squareOsc(sample, f, sampleRate, semiToFreq(f2,f)); } 
-        var osc3 = function(sample, f) { return !osc3On ? 0 : squareOsc(sample, f, sampleRate, semiToFreq(f3,f)); } 
+      const activeNotes = new Map();
+      let audioCtx;
 
-        // var k = 2 * Math.PI * (f) / sampleRate;
-
-        for (var i=0, size=soundData.length; i<size; i++) {
-          var n = 1; //Math.random();
-          currentSoundSample++;
-          var cnt = 0;
-            
-          // sanitize keys
-          toRemove = {}
-          for (var key in activeKeys) {
-              if (!notes[key]) { toRemove[key] = true; }
-          }
-          for (var key in toRemove) { delete activeKeys[key]; }
-          toRemove = {}
-
-          // process all active keys
-          for ( var key in activeKeys ) {
-              if (!notes[key]) {
-                 delete activeKeys[key];
-              }
-              var env = activeEnv[key];
-              if (!env) {
-                env = new AdsrEnvelope(parseFloat($("#attack").val()),
-                                       parseFloat($("#decay").val()),
-                                       parseFloat($("#sustain").val()),
-                                       parseFloat($("#release").val()),currentSoundSample/sampleRate);
-                activeEnv[key] = env;
-              }
-              var f = notes[key] / 4;
-              var envValue = env.down(currentSoundSample/sampleRate);
-              soundData[i] += (1/10)*envValue * 
-                                 (osc1(currentSoundSample+lfo, f) + 
-                                  osc2(currentSoundSample, f) +
-                                  osc3(currentSoundSample, f)) ;
-              cnt += 1;
-          }
-
-          // process all released keys
-          for ( var key in activeEnv ) {
-              // filter out keys actively pressed, they have already been processed
-               if (activeKeys[key]) continue;
-              var env = activeEnv[key];
-              var f = notes[key] / 4;
-              var envValue = env.up(currentSoundSample/sampleRate);
-              if (envValue <= 0) {
-                  toRemove[key] = true;
-                  continue;
-              }
-              soundData[i] += (1/10)*envValue * 
-                                 (osc1(currentSoundSample+lfo, f) + 
-                                  osc2(currentSoundSample, f) +
-                                  osc3(currentSoundSample, f)) ;
-              cnt += 1;
-          }
-
-          for (var key in toRemove) { delete activeEnv[key]; }
-
-          lfo = doLfo ? (lfo + (0.01 + 0.5/sampleRate)*Math.sin(t)) : lfo ;
-          if (doLfo)           t += dt;
-        }        
-        lfoUi.value = lfo;
+      function normalizeKey(key) {
+        if (!key) return null;
+        const aliases = { "+": "=", "_": "-", "{": "[", "}": "]", "|": "\\" };
+        if (aliases[key]) return aliases[key];
+        if (key.length === 1 && key.match(/[a-z]/i)) {
+          return key.toUpperCase();
+        }
+        return key.length === 1 ? key : null;
       }
 
-      var audioDestination = new AudioDataDestination(sampleRate, requestSoundData);
-  </script>
-  <script type="text/javascript"> 
-        var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
-        document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
-  </script> 
-  <script type="text/javascript"> 
-        var pageTracker = _gat._getTracker("UA-3537030-1");
-        pageTracker._initData();
-        pageTracker._trackPageview();
-        </script> 
+      function getAudioContext() {
+        if (!audioCtx) {
+          const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+          audioCtx = new AudioContextCtor();
+        }
+        if (audioCtx.state === "suspended") {
+          audioCtx.resume();
+        }
+        return audioCtx;
+      }
+
+      function semitoneRatio(semitones) {
+        return Math.pow(2, semitones / 12);
+      }
+
+      function createOscillator(ctx, type, baseFreq, semitoneOffset) {
+        const osc = ctx.createOscillator();
+        osc.type = type;
+        osc.frequency.value = baseFreq * semitoneRatio(semitoneOffset);
+        return osc;
+      }
+
+      function readEnvelope() {
+        return {
+          attack: parseFloat($("#attack").val()) || 0,
+          decay: parseFloat($("#decay").val()) || 0,
+          sustain: parseFloat($("#sustain").val()) || 0,
+          release: parseFloat($("#release").val()) || 0
+        };
+      }
+
+      function startNoteForKey(rawKey) {
+        const key = normalizeKey(rawKey);
+        if (!key || activeNotes.has(key)) return;
+
+        const baseFreq = noteFrequencies[key];
+        if (!baseFreq) return;
+
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+        const envelope = readEnvelope();
+        const baseGain = 0.2;
+
+        const gainNode = ctx.createGain();
+        gainNode.gain.setValueAtTime(0, now);
+        gainNode.connect(ctx.destination);
+        gainNode.gain.linearRampToValueAtTime(baseGain, now + envelope.attack);
+        gainNode.gain.linearRampToValueAtTime(baseGain * envelope.sustain, now + envelope.attack + envelope.decay);
+
+        const baseNoteFreq = baseFreq / 4;
+        const oscDefinitions = [
+          { id: "osc1", type: "sine", semitoneInput: "#freq1" },
+          { id: "osc2", type: "square", semitoneInput: "#freq2" },
+          { id: "osc3", type: "square", semitoneInput: "#freq3" }
+        ];
+
+        const oscillators = [];
+        oscDefinitions.forEach(def => {
+          const checkbox = document.getElementById(def.id);
+          if (!checkbox || !checkbox.checked) return;
+          const offset = parseFloat($(def.semitoneInput).val()) || 0;
+          const osc = createOscillator(ctx, def.type, baseNoteFreq, offset);
+          osc.connect(gainNode);
+          osc.start(now);
+          oscillators.push(osc);
+        });
+
+        if (!oscillators.length) {
+          gainNode.disconnect();
+          return;
+        }
+
+        activeNotes.set(key, { gainNode, oscillators });
+      }
+
+      function stopNoteForKey(rawKey) {
+        const key = normalizeKey(rawKey);
+        const noteState = activeNotes.get(key);
+        if (!noteState) return;
+
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+        const release = parseFloat($("#release").val()) || 0;
+
+        noteState.gainNode.gain.cancelScheduledValues(now);
+        const currentGain = noteState.gainNode.gain.value;
+        noteState.gainNode.gain.setValueAtTime(currentGain, now);
+        noteState.gainNode.gain.linearRampToValueAtTime(0, now + release);
+
+        noteState.oscillators.forEach(osc => {
+          osc.stop(now + release + 0.05);
+        });
+
+        setTimeout(() => {
+          noteState.gainNode.disconnect();
+        }, (release + 0.1) * 1000);
+
+        activeNotes.delete(key);
+      }
+
+      function handleKeyDown(event) {
+        if (event.repeat) return;
+        startNoteForKey(event.key);
+      }
+
+      function handleKeyUp(event) {
+        stopNoteForKey(event.key);
+      }
+
+      function enableAudio() {
+        const ctx = getAudioContext();
+        if (ctx.state === "suspended") {
+          ctx.resume();
+        }
+        document.body.classList.add("show-ui");
+      }
+
+      document.addEventListener("keydown", handleKeyDown);
+      document.addEventListener("keyup", handleKeyUp);
+      document.addEventListener("DOMContentLoaded", () => {
+        const enableButton = document.getElementById("enableAudio");
+        if (enableButton) {
+          enableButton.addEventListener("click", enableAudio);
+        }
+      });
+    </script>
 
   </body>
 </html>
+
